@@ -1,0 +1,21 @@
+{
+  "name": "dandubois-net",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/danielphan/dandubois-net"
+  },
+  "author": "Daniel Phan <web@dandubois.net>",
+  "license": "none",
+  "bugs": {
+    "url": "https://github.com/danielphan/dandubois-net/issues"
+  },
+  "devDependencies": {
+    "gulp": "~3.5.6"
+  }
+}
