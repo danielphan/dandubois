@@ -1,17 +1,17 @@
 package migrate
 
-import "github.com/danielphan/dandubois-net/painting/legacy"
+import "github.com/danielphan/dandubois/painting/legacy"
 import "net/http"
 import "io"
 import "encoding/json"
 import "strings"
 
-const mediaUrl = baseUrl + "media.json"
+const mediaURL = baseURL + "media.json"
 
 type media map[int][]string
 
 func fetchMedia(c *http.Client) (media, error) {
-	res, err := c.Get(mediaUrl)
+	res, err := c.Get(mediaURL)
 	if err != nil {
 		return nil, err
 	}

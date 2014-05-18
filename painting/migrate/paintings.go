@@ -4,23 +4,29 @@ import (
 	"appengine"
 	"appengine/blobstore"
 	"appengine/delay"
-	"appengine/image"
+	aeimage "appengine/image"
 	"appengine/urlfetch"
-	"bufio"
-	"github.com/danielphan/dandubois-net/painting"
-	"github.com/danielphan/dandubois-net/painting/legacy"
+	"bytes"
+	"encoding/json"
+	"github.com/danielphan/dandubois/logger"
+	"github.com/danielphan/dandubois/painting"
+	"github.com/danielphan/dandubois/painting/legacy"
+	"github.com/danielphan/object"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"io"
+	"net/http"
+	"strconv"
 )
 
-import "net/http"
-import "io"
-import "encoding/json"
-
-const paintingsUrl = baseUrl + "paintings.json"
+const paintingsURL = baseURL + "paintings.json"
 
 type paintings []*legacy.Painting
 
 func fetchPaintings(c *http.Client) (paintings, error) {
-	res, err := c.Get(paintingsUrl)
+	res, err := c.Get(paintingsURL)
 	if err != nil {
 		return nil, err
 	}
@@ -36,13 +42,17 @@ func newPaintings(r io.Reader) (paintings, error) {
 	return ps, nil
 }
 
-func (p paintings) convert(c appengine.Context, cs categories, ms media) {
+func (p paintings) convert(w http.ResponseWriter, c appengine.Context, cs categories, ms media) {
 	for _, o := range p {
 		old := o.Fields
 		p := &painting.Painting{
-			Number:      old.Number,
-			Title:       old.Title,
-			Image:       appengine.BlobKey(" "),
+			Object: object.Object{
+				ID: strconv.Itoa(old.Number),
+			},
+			Title: old.Title,
+			Image: painting.Image{
+				BlobKey: appengine.BlobKey(" "),
+			},
 			Description: old.Description,
 			Year:        old.Year,
 			Categories:  cs.convert(old.Categories),
@@ -53,9 +63,8 @@ func (p paintings) convert(c appengine.Context, cs categories, ms media) {
 			ForSale:     old.Status == "F",
 		}
 		if old.Image != "" {
-			p.ImageUrl = baseUrl + old.Image
+			p.Image.URL = baseURL + old.Image
 		}
-		p.Created(c)
 		saveLater.Call(c, p)
 	}
 }
@@ -67,47 +76,63 @@ func init() {
 }
 
 func save(c appengine.Context, p *painting.Painting) error {
-	if p.ImageUrl != "" {
+	if p.Image.URL != "" {
 		// Fetch the image.
-		res, err := urlfetch.Client(c).Get(p.ImageUrl)
+		res, err := urlfetch.Client(c).Get(p.Image.URL)
 		if err != nil {
+			logger.Error(c, err)
+			return err
+		}
+		defer res.Body.Close()
+
+		// Save what we read to decode the image config,
+		// so we can save the whole image to the blobstore.
+		buf := &bytes.Buffer{}
+		t := io.TeeReader(res.Body, buf)
+
+		// Decode the config to get the size and content type.
+		conf, ext, err := image.DecodeConfig(t)
+		if err != nil {
+			logger.Error(c, err)
+			return err
+		}
+		p.Image.Width = conf.Width
+		p.Image.Height = conf.Height
+
+		// Create a new blob.
+		b, err := blobstore.Create(c, "image/"+ext)
+		if err != nil {
+			logger.Error(c, err)
 			return err
 		}
 
-		// Get the content type.
-		ct := res.Header.Get("Content-Type")
-		if ct == "" {
-			h, err := bufio.NewReader(res.Body).Peek(512)
-			if err != nil {
-				return err
-			}
-			ct = http.DetectContentType(h)
-		}
+		// Copy the image into it.
+		// Prepend what we read to decode the image config.
+		r := io.MultiReader(buf, res.Body)
 
-		// Create a new blob and copy the image into it.
-		b, err := blobstore.Create(c, ct)
+		_, err = io.Copy(b, r)
 		if err != nil {
-			return err
-		}
-		_, err = io.Copy(b, res.Body)
-		if err != nil {
+			logger.Error(c, err)
 			return err
 		}
 		err = b.Close()
 		if err != nil {
+			logger.Error(c, err)
 			return err
 		}
 
 		// Add the image to the painting.
-		p.Image, err = b.Key()
+		p.Image.BlobKey, err = b.Key()
 		if err != nil {
+			logger.Error(c, err)
 			return err
 		}
-		u, err := image.ServingURL(c, p.Image, nil)
+		u, err := aeimage.ServingURL(c, p.Image.BlobKey, nil)
 		if err != nil {
+			logger.Error(c, err)
 			return err
 		}
-		p.ImageUrl = u.String()
+		p.Image.URL = u.String()
 	}
 	return p.Save(c)
 }

@@ -2,19 +2,23 @@ package painting
 
 import (
 	"appengine"
-	"appengine/datastore"
-	"github.com/danielphan/dandubois-net/object"
+	"github.com/danielphan/object"
 )
 
-const kind = "Painting"
+const Kind = "Painting"
+
+type ID string
+
+type Image struct {
+	BlobKey       appengine.BlobKey `json:"-"`
+	URL           string
+	Width, Height int
+}
 
 type Painting struct {
 	object.Object
-
-	Number      int
 	Title       string
-	Image       appengine.BlobKey `json:"-"`
-	ImageUrl    string
+	Image       Image
 	Description string `datastore:",noindex"`
 	Year        int
 	Categories  []string
@@ -25,22 +29,19 @@ type Painting struct {
 	ForSale     bool
 }
 
-func (p *Painting) Created(c appengine.Context) error {
-	id, _, err := datastore.AllocateIDs(c, kind, nil, 1)
+func Get(c appengine.Context, id ID) (*Painting, error) {
+	var p Painting
+	err := object.Get(c, Kind, string(id), &p)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	p.Object.Created(id)
-	return nil
+	return &p, nil
+}
+
+func GetAll(c appengine.Context) ([]*Painting, error) {
+	return nil, nil
 }
 
 func (p *Painting) Save(c appengine.Context) error {
-	modified, err := p.Modified(p)
-	if !modified || err != nil {
-		return err
-	}
-
-	key := datastore.NewKey(c, kind, p.Id, 0, nil)
-	_, err = datastore.Put(c, key, p)
-	return err
+	return object.Save(c, Kind, p)
 }

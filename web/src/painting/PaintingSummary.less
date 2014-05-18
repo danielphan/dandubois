@@ -1,0 +1,26 @@
+.PaintingSummary {
+	margin: 2px;
+	background-color: #eeeeee;
+	position: relative;
+
+	.Title {
+		z-index: 1;
+		position: absolute;
+		visibility: hidden;
+		bottom: 0px;
+		width: 100%;
+
+		color: initial;
+		background-color: rgba(255, 255, 255, 0.8);
+		padding: 5px;
+	}
+
+	&:hover .Title {
+		visibility: visible;
+	}
+
+	.Image {
+		opacity: 0;
+		transition: opacity 0.3s ease-in;
+	}
+}

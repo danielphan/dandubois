@@ -1,0 +1,22 @@
+application: dandubois-net
+version: 2
+runtime: go
+api_version: go1
+
+handlers:
+- url: /api/migrate/.*
+  script: _go_app
+  login: admin
+- url: /_ah/queue/go/delay
+  script: _go_app
+  login: admin
+- url: /api/.*
+  script: _go_app
+- url: /dist
+  static_dir: ../web/dist
+- url: /.*
+  static_files: ../web/dist/index.html
+  upload: ../web/dist/index.html
+
+skip_files:
+- ../web/.*

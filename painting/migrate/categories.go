@@ -1,17 +1,17 @@
 package migrate
 
-import "github.com/danielphan/dandubois-net/painting/legacy"
+import "github.com/danielphan/dandubois/painting/legacy"
 import "net/http"
 import "io"
 import "encoding/json"
 import "strings"
 
-const categoriesUrl = baseUrl + "categories.json"
+const categoriesURL = baseURL + "categories.json"
 
 type categories map[int]string
 
 func fetchCategories(c *http.Client) (categories, error) {
-	res, err := c.Get(categoriesUrl)
+	res, err := c.Get(categoriesURL)
 	if err != nil {
 		return nil, err
 	}
