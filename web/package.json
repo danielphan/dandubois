@@ -16,7 +16,7 @@
     "url": "https://github.com/danielphan/dandubois-net/issues"
   },
   "devDependencies": {
-    "gulp": "~3.5.6",
+    "gulp": "~3.8.0",
     "gulp-livereload": "~1.2.0",
     "gulp-watch": "~0.5.2",
     "gulp-recess": "~0.2.0",
