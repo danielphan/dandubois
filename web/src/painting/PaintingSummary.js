@@ -21,7 +21,6 @@ var PaintingSummary = React.createClass({
 	componentDidMount: function() {
 		jQuery(this.refs['image'].getDOMNode()).unveil(100, function() {
 			jQuery(this).load(function() {
-				console.log(this);
 		    this.style.opacity = 1;
 		  });
 		});
