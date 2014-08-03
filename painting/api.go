@@ -18,14 +18,14 @@ func Routes(r *mux.Router) {
 	r.Methods("GET").Handler(listPaintings)
 	r.Methods("POST").Handler(createPainting)
 
-	r.Path("/categories").Methods("GET").Handler(listCategories)
-	r.Path("/media").Methods("GET").Handler(listMedia)
+	r.Methods("GET").Path("/categories").Handler(listCategories)
+	r.Methods("GET").Path("/media").Handler(listMedia)
 
 	r = r.PathPrefix("/{ID:[0-9]+}").Subrouter()
 	r.Methods("GET").Handler(showPainting)
 	r.Methods("PUT").Handler(editPainting)
 
-	r.Path("/rotate").Methods("POST").Handler(rotatePainting)
+	r.Methods("POST").Path("/rotate").Handler(rotatePainting)
 }
 
 var listCategories = apiutil.Error(apiutil.Json(
