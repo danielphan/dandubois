@@ -60,7 +60,6 @@ var PaintingsPage = React.createClass({
 							}
 						});
 						var objects = me.justifyWidth(paintings, me.state.width - 100, 2);
-						console.log(objects);
 						return <ul key={year}>{
 							_(objects).map(function(o, index) {
 								if (index === 0) {
@@ -98,8 +97,8 @@ var PaintingsPage = React.createClass({
 			return {
 				object: p,
 				dimensions: {
-					width: p.Width,
-					height: p.Height
+					width: p.Image.Width,
+					height: p.Image.Height
 				}
 			};
 		});
@@ -126,13 +125,12 @@ var PaintingsPage = React.createClass({
 
 		objects.forEach(function(object) {
 			object.dimensions = me.scaleToHeight(object.dimensions, 300);
-			console.log(object);
 
 			row.push(object);
 			accumulatedWidth += object.dimensions.width;
 			accumulatedMargin += (margin || 0) * 2;
 
-			if (width <= (accumulatedWidth + accumulatedMargin)) {
+			if ((accumulatedWidth + accumulatedMargin) >= width) {
 				// Rescale the entire row.
 				var adjustedScale = (width - accumulatedMargin) / accumulatedWidth;
 				row.forEach(function(o) {
