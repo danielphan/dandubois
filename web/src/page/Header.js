@@ -4,8 +4,7 @@
 var
   jQuery = require('jquery'),
   React = require('react'),
-  Router = require('react-router-component'),
-  underscore = require('underscore')
+  Router = require('react-router-component')
 ;
 
 var
