@@ -13,10 +13,7 @@ handlers:
 - url: /api/.*
   script: _go_app
 - url: /dist
-  static_dir: ../web/dist
+  static_dir: web/dist
 - url: /.*
-  static_files: ../web/dist/index.html
-  upload: ../web/dist/index.html
-
-skip_files:
-- ../web/.*
+  static_files: web/dist/index.html
+  upload: web/dist/index.html

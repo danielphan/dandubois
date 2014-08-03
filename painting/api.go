@@ -2,13 +2,17 @@ package painting
 
 import (
 	"appengine"
-	"appengine/datastore"
+	"appengine/user"
 	"encoding/json"
-	"fmt"
-	"github.com/danielphan/dandubois/apiutil"
+	"errors"
+	"github.com/danielphan/ae/apiutil"
+	"github.com/danielphan/ae/logger"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
+
+var ErrMustLogIn = errors.New("Must be logged in.")
 
 var router *mux.Router
 
@@ -24,25 +28,19 @@ func Routes(r *mux.Router) {
 	p.Methods("GET").HandlerFunc(apiutil.Wrap(showPainting))
 	p.Methods("PUT").HandlerFunc(apiutil.Wrap(editPainting))
 
+	r.Path("/paintings/{ID:[0-9]+}/rotate").
+		Subrouter().
+		Methods("POST").
+		HandlerFunc(apiutil.Wrap(rotatePainting))
+
 	router = r
 }
 
 func listCategories(w http.ResponseWriter, r *http.Request) error {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery(Kind).
-		Project("Categories").
-		Distinct().
-		Order("Categories")
-
-	var paintings []*struct{ Categories []string }
-	_, err := q.GetAll(c, &paintings)
+	categories, err := GetAllCategories(c)
 	if err != nil {
 		return err
-	}
-
-	var categories []string
-	for _, p := range paintings {
-		categories = append(categories, p.Categories[0])
 	}
 
 	err = json.NewEncoder(w).Encode(categories)
@@ -55,20 +53,9 @@ func listCategories(w http.ResponseWriter, r *http.Request) error {
 
 func listMedia(w http.ResponseWriter, r *http.Request) error {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery(Kind).
-		Project("Media").
-		Distinct().
-		Order("Media")
-
-	var paintings []*struct{ Media []string }
-	_, err := q.GetAll(c, &paintings)
+	media, err := GetAllMedia(c)
 	if err != nil {
 		return err
-	}
-
-	var media []string
-	for _, p := range paintings {
-		media = append(media, p.Media[0])
 	}
 
 	err = json.NewEncoder(w).Encode(media)
@@ -81,12 +68,7 @@ func listMedia(w http.ResponseWriter, r *http.Request) error {
 
 func listPaintings(w http.ResponseWriter, r *http.Request) error {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery(Kind).
-		Order("-Year").
-		Order("-ID")
-
-	var paintings []*Painting
-	_, err := q.GetAll(c, &paintings)
+	paintings, err := GetAll(c)
 	if err != nil {
 		return err
 	}
@@ -101,9 +83,14 @@ func listPaintings(w http.ResponseWriter, r *http.Request) error {
 
 func createPainting(w http.ResponseWriter, r *http.Request) error {
 	c := appengine.NewContext(r)
+	if !user.IsAdmin(c) {
+		s := logger.Error(c, ErrMustLogIn)
+		http.Error(w, s, http.StatusUnauthorized)
+		return nil
+	}
 
-	var p Painting
-	err := json.NewDecoder(r.Body).Decode(&p)
+	p := &Painting{}
+	err := json.NewDecoder(r.Body).Decode(p)
 	if err != nil {
 		return err
 	}
@@ -113,13 +100,26 @@ func createPainting(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	err = json.NewEncoder(w).Encode(p)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func showPainting(w http.ResponseWriter, r *http.Request) error {
+func get(r *http.Request) (*Painting, error) {
 	c := appengine.NewContext(r)
 	id := mux.Vars(r)["ID"]
 	p, err := Get(c, ID(id))
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+func showPainting(w http.ResponseWriter, r *http.Request) error {
+	p, err := get(r)
 	if err != nil {
 		return err
 	}
@@ -133,6 +133,42 @@ func showPainting(w http.ResponseWriter, r *http.Request) error {
 }
 
 func editPainting(w http.ResponseWriter, r *http.Request) error {
-	fmt.Fprintln(w, "editPainting")
+	c := appengine.NewContext(r)
+	if !user.IsAdmin(c) {
+		s := logger.Error(c, ErrMustLogIn)
+		http.Error(w, s, http.StatusUnauthorized)
+		return nil
+	}
+	return nil
+}
+
+func rotatePainting(w http.ResponseWriter, r *http.Request) error {
+	c := appengine.NewContext(r)
+	if !user.IsAdmin(c) {
+		s := logger.Error(c, ErrMustLogIn)
+		http.Error(w, s, http.StatusUnauthorized)
+		return nil
+	}
+
+	p, err := get(r)
+	if err != nil {
+		return err
+	}
+
+	angle, err := strconv.ParseFloat(r.FormValue("angle"), 64)
+	if err != nil {
+		return err
+	}
+
+	err = p.rotate(c, angle)
+	if err != nil {
+		return err
+	}
+
+	err = json.NewEncoder(w).Encode(p)
+	if err != nil {
+		return nil
+	}
+
 	return nil
 }

@@ -8,10 +8,10 @@ import (
 	"appengine/urlfetch"
 	"bytes"
 	"encoding/json"
-	"github.com/danielphan/dandubois/logger"
+	"github.com/danielphan/ae/logger"
 	"github.com/danielphan/dandubois/painting"
 	"github.com/danielphan/dandubois/painting/legacy"
-	"github.com/danielphan/object"
+	"github.com/danielphan/ae/object"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -46,9 +46,10 @@ func (p paintings) convert(w http.ResponseWriter, c appengine.Context, cs catego
 	for _, o := range p {
 		old := o.Fields
 		p := &painting.Painting{
-			Object: object.Object{
-				ID: strconv.Itoa(old.Number),
-			},
+			Object: object.New(
+				painting.Kind,
+				strconv.Itoa(old.Number),
+			),
 			Title: old.Title,
 			Image: painting.Image{
 				BlobKey: appengine.BlobKey(" "),
