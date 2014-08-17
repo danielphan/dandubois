@@ -9,23 +9,19 @@ import (
 	"strconv"
 )
 
-var router *mux.Router
-
 func Routes(r *mux.Router) {
-	router = r
+	ps := r.Path("/paintings").Subrouter()
+	ps.Methods("GET").Handler(listPaintings)
+	ps.Methods("POST").Handler(createPainting)
 
-	r = r.PathPrefix("/paintings").Subrouter()
-	r.Methods("GET").Handler(listPaintings)
-	r.Methods("POST").Handler(createPainting)
+	r.Methods("GET").Path("/paintings/categories").Handler(listCategories)
+	r.Methods("GET").Path("/paintings/media").Handler(listMedia)
 
-	r.Methods("GET").Path("/categories").Handler(listCategories)
-	r.Methods("GET").Path("/media").Handler(listMedia)
+	p := r.Path("/paintings/{ID:[0-9]+}").Subrouter()
+	p.Methods("GET").Handler(showPainting)
+	p.Methods("PUT").Handler(editPainting)
 
-	r = r.PathPrefix("/{ID:[0-9]+}").Subrouter()
-	r.Methods("GET").Handler(showPainting)
-	r.Methods("PUT").Handler(editPainting)
-
-	r.Methods("POST").Path("/rotate").Handler(rotatePainting)
+	r.Methods("POST").Path("/paintings/{ID:[0-9]+}/rotate").Handler(rotatePainting)
 }
 
 var listCategories = apiutil.Error(apiutil.Json(
