@@ -15,8 +15,5 @@ module.exports = {
       { test: /\.(png|jpe?g|gif|svg|ico)$/, loader: "url-loader?limit=100000" }
     ]
   },
-  jshint: {
-    globalstrict: true,
-    browser: true
-  }
+  jshint: require("./.jshintrc")
 };
