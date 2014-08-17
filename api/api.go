@@ -8,12 +8,8 @@ import (
 )
 
 func init() {
-	r := mux.NewRouter().
-		PathPrefix("/api").
-		Subrouter()
-
+	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	painting.Routes(r)
 	migrate.Routes(r)
-
 	http.Handle("/", r)
 }
