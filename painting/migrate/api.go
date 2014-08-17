@@ -20,7 +20,7 @@ func Routes(r *mux.Router) {
 }
 
 var load = apiutil.Error(apiutil.Json(apiutil.Admin(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		c := appengine.NewContext(r)
 		client := urlfetch.Client(c)
 
@@ -45,7 +45,7 @@ var load = apiutil.Error(apiutil.Json(apiutil.Admin(
 	})))
 
 var clean = apiutil.Error(apiutil.Json(apiutil.Admin(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		c := appengine.NewContext(r)
 		q := datastore.NewQuery(painting.Kind).Project("Image")
 

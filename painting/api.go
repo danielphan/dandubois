@@ -25,7 +25,7 @@ func Routes(r *mux.Router) {
 }
 
 var listCategories = apiutil.Error(apiutil.Json(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		c := appengine.NewContext(r)
 		categories, err := GetAllCategories(c)
 		if err != nil {
@@ -41,7 +41,7 @@ var listCategories = apiutil.Error(apiutil.Json(
 	}))
 
 var listMedia = apiutil.Error(apiutil.Json(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		c := appengine.NewContext(r)
 		media, err := GetAllMedia(c)
 		if err != nil {
@@ -57,7 +57,7 @@ var listMedia = apiutil.Error(apiutil.Json(
 	}))
 
 var listPaintings = apiutil.Error(apiutil.Json(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		c := appengine.NewContext(r)
 		paintings, err := GetAll(c)
 		if err != nil {
@@ -73,7 +73,7 @@ var listPaintings = apiutil.Error(apiutil.Json(
 	}))
 
 var createPainting = apiutil.Error(apiutil.Json(apiutil.Admin(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		c := appengine.NewContext(r)
 
 		p := &Painting{}
@@ -106,7 +106,7 @@ func getPainting(r *http.Request) (*Painting, error) {
 }
 
 var showPainting = apiutil.Error(apiutil.Json(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		p, err := getPainting(r)
 		if err != nil {
 			return err
@@ -121,12 +121,12 @@ var showPainting = apiutil.Error(apiutil.Json(
 	}))
 
 var editPainting = apiutil.Error(apiutil.Json(apiutil.Admin(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	})))
 
 var rotatePainting = apiutil.Error(apiutil.Json(apiutil.Admin(
-	func (w http.ResponseWriter, r *http.Request) error {
+	func(w http.ResponseWriter, r *http.Request) error {
 		c := appengine.NewContext(r)
 
 		p, err := getPainting(r)
@@ -134,9 +134,16 @@ var rotatePainting = apiutil.Error(apiutil.Json(apiutil.Admin(
 			return err
 		}
 
-		angle, err := strconv.ParseFloat(r.FormValue("angle"), 64)
-		if err != nil {
-			return err
+		param := r.FormValue("angle")
+
+		var angle int
+		if param == "" {
+			angle = 90
+		} else {
+			angle, err = strconv.Atoi(param)
+			if err != nil {
+				return err
+			}
 		}
 
 		err = p.rotate(c, angle)
