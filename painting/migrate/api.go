@@ -14,9 +14,9 @@ import (
 const baseURL = "http://static.danieldubois.net/"
 
 func Routes(r *mux.Router) {
-	r = r.PathPrefix("/migrate").Subrouter()
-	r.Methods("POST").Path("/load").Handler(load)
-	r.Methods("POST").Path("/clean").Handler(clean)
+	r = r.Methods("POST").PathPrefix("/migrate").Subrouter()
+	r.Path("/load").Handler(load)
+	r.Path("/clean").Handler(clean)
 }
 
 var load = apiutil.Error(apiutil.Json(apiutil.Admin(
