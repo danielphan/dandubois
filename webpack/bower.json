@@ -1,0 +1,13 @@
+{
+  "name": "dandubois",
+  "version": "2.0.0",
+  "authors": [
+    "Daniel Phan <web@dandubois.net>"
+  ],
+  "license": "MIT",
+  "homepage": "http://dandubois.net",
+  "private": true,
+  "dependencies": {
+    "html5shiv": "~3.7.2"
+  }
+}

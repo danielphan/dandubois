@@ -1,7 +1,18 @@
+/* jshint node: true, browser: false */
+"use strict";
+
+var jsonfile = require("jsonfile");
+var webpack = require("webpack");
+
 module.exports = {
   resolve: {
-      moduleDirectories: ["node_modules"]
+      moduleDirectories: ["node_modules", "bower_components"]
   },
+  plugins: [
+    new webpack.ResolverPlugin(
+      new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin("bower.json", ["main"])
+    )
+  ],
   module: {
     preLoaders: [
       { test: /\.js$/, exclude: /node_modules/, loader: "jshint" },
@@ -15,5 +26,5 @@ module.exports = {
       { test: /\.(png|jpe?g|gif|svg|ico)$/, loader: "url-loader?limit=100000" }
     ]
   },
-  jshint: require("./.jshintrc")
+  jshint: jsonfile.readFileSync("./.jshintrc")
 };

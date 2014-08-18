@@ -15,10 +15,11 @@ var config = {
 };
 
 var webpackConfig = require("./webpack.config.js");
-webpackConfig.entry = config.src + "main.js";
+webpackConfig.entry = config.src + "index.jsx";
 
 gulp.task("build", function() {
   var webpackProdConfig = Object.create(webpackConfig);
+  webpackProdConfig.devtool = "source-map";
   webpackProdConfig.plugins = webpackProdConfig.plugins || [];
   webpackProdConfig.plugins.push(new webpack.DefinePlugin({
     "process.env.NODE_ENV": JSON.stringify("production"),

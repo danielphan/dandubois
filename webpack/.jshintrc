@@ -2,6 +2,8 @@
   "globalstrict": true,
   "browser": true,
   "globals": {
-    "require": false
-  }
+    "require": false,
+    "module": false
+  },
+  "quotmark": "double"
 }
