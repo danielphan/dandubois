@@ -1,3 +1,6 @@
+/* jshint node: true, browser: false */
+"use strict";
+
 var del = require("del");
 var gulp = require("gulp");
 var gulpWebpack = require("gulp-webpack");
@@ -35,10 +38,9 @@ gulp.task("build", function() {
 gulp.task("serve", function() {
   var webpackDevConfig = Object.create(webpackConfig);
   webpackDevConfig.output = {
-    path: __dirname + config.dest,
+    path: __dirname,
     filename: "bundle.js"
   };
-  webpackDevConfig.devtool = "source-map";
   webpackDevConfig.plugins = webpackDevConfig.plugins || [];
   webpackDevConfig.plugins.push(new webpack.DefinePlugin({
     "process.env.NODE_ENV": JSON.stringify("development"),
@@ -48,13 +50,15 @@ gulp.task("serve", function() {
 
   var compiler = webpack(webpackDevConfig);
   new WebpackDevServer(compiler, {
-    stats: { colors: true }
+    stats: { colors: true },
+    publicPath: "http://localhost:8090/",
+    contentBase: "http://localhost:8080/"
   }).listen(8090, "localhost", function(err) {
     if (err) {
       throw new util.PluginError("webpack-dev-server", err);
     }
     util.log("[webpack-dev-server]",
-      util.colors.bgGreen("http://localhost:8090/webpack-dev-server/bundle"));
+      util.colors.bgGreen("http://localhost:8090/webpack-dev-server/"));
   });
 });
 
